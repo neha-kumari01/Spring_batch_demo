@@ -1,26 +1,29 @@
 package com.spring.scheduler.config;
 
+import java.util.Arrays;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.support.ClassifierCompositeItemWriter;
+import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.spring.scheduler.entity.ChinaCustomer;
 import com.spring.scheduler.entity.Customer;
-import com.spring.scheduler.repo.CustomerRepository;
+import com.spring.scheduler.entity.USCustomer;
+import com.spring.scheduler.repo.ChinaCustomerRepository;
+import com.spring.scheduler.repo.USCustomerRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -29,74 +32,55 @@ import lombok.AllArgsConstructor;
 public class JobConfig {
 
 	@Autowired
-	private CustomerRepository customerRepository;
+	private USCustomerRepository customerRepository;
+
+	@Autowired
+	private ChinaCustomerRepository chinaCustomerRepository;
+
+	@Autowired
+	private CustomerItemReader customerItemReader;
+
+	@Autowired
+	private CustomerItemProcessor customerItemProcessor;
+	@Autowired
+	private ChinaItemWriter chinaWriter;
+	@Autowired
+	private USItemWriter usWriter;
 
 	/*
-	 * @Bean public FlatFileItemReader<Customer> readCSV() { return new
-	 * FlatFileItemReaderBuilder<Customer>().name("Customer Item Reader")
-	 * .resource(new ClassPathResource(
-	 * "C:/Users/ashwa/OneDrive/Desktop/SPRING/SpringBatch/src/main/resources/customers1.csv"
-	 * )) .delimited().names("id", "firstName", "lastName", "email", "gender",
-	 * "contactNo", "country", "dob")
-	 * .targetType(Customer.class).linesToSkip(1).build(); }
+	 * @Bean("divide") public Job runJob(JobRepository jobRepository,
+	 * PlatformTransactionManager transactionManager) throws Exception { return new
+	 * JobBuilder("segregateCustomers", jobRepository).flow(step1(jobRepository,
+	 * transactionManager)).end() .build(); }
+	 * 
+	 * 
+	 * @Bean public Step step1(JobRepository jobRepository,
+	 * PlatformTransactionManager transactionManager) throws Exception { return new
+	 * StepBuilder("segregate", jobRepository).<Customer, ChinaCustomer>chunk(200,
+	 * transactionManager)
+	 * .reader(customerItemReader).processor(customerItemProcessor).writer(writer1()
+	 * ) .taskExecutor(taskExecutor()).build(); }
+	 * 
+	 * 
+	 * @Bean public CompositeItemWriter<Object> compositeItemWriter() {
+	 * CompositeItemWriter<Object> writer = new CompositeItemWriter<>();
+	 * writer.setDelegates(Arrays.asList(writer1(), writer2())); return writer; }
+	 * 
+	 * @Bean public ItemWriter<ChinaCustomer> writer1() { return new
+	 * ItemWriter<ChinaCustomer>() {
+	 * 
+	 * @Override public void write(Chunk<? extends ChinaCustomer> chunk) throws
+	 * Exception { chinaCustomerRepository.saveAll(chunk); } }; }
+	 * 
+	 * @Bean public ItemWriter<USCustomer> writer2() { return new
+	 * ItemWriter<USCustomer>() {
+	 * 
+	 * @Override public void write(Chunk<? extends USCustomer> chunk) throws
+	 * Exception { customerRepository.saveAll(chunk); } }; }
+	 * 
+	 * @Bean public TaskExecutor taskExecutor() { SimpleAsyncTaskExecutor
+	 * asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+	 * asyncTaskExecutor.setConcurrencyLimit(10); return asyncTaskExecutor; }
 	 */
-	@Bean
-	public FlatFileItemReader<Customer> reader() {
-		FlatFileItemReader<Customer> itemReader = new FlatFileItemReader<>();
-		itemReader.setResource(new FileSystemResource("src/main/resources/customers.csv"));
-		itemReader.setName("csvReader");
-		itemReader.setLinesToSkip(1);
-		itemReader.setLineMapper(lineMapper());
-		return itemReader;
-	}
-
-	private LineMapper<Customer> lineMapper() {
-		DefaultLineMapper<Customer> lineMapper = new DefaultLineMapper<>();
-
-		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
-		lineTokenizer.setDelimiter(",");
-		lineTokenizer.setStrict(false);
-		lineTokenizer.setNames("id", "firstName", "lastName", "email", "gender", "contactNo", "country", "dob");
-
-		BeanWrapperFieldSetMapper<Customer> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
-		fieldSetMapper.setTargetType(Customer.class);
-
-		lineMapper.setLineTokenizer(lineTokenizer);
-		lineMapper.setFieldSetMapper(fieldSetMapper);
-		return lineMapper;
-
-	}
-
-	@Bean
-	public CustomerProcessor processor() {
-		return new CustomerProcessor();
-	}
-
-	@Bean
-	public RepositoryItemWriter<Customer> writer() {
-		RepositoryItemWriter<Customer> writer = new RepositoryItemWriter<>();
-		writer.setRepository(customerRepository);
-		writer.setMethodName("save");
-		return writer;
-	}
-
-	@Bean
-	public Step step1(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-		return new StepBuilder("csv-step", jobRepository).<Customer, Customer>chunk(200, transactionManager)
-				.reader(reader()).processor(processor()).writer(writer()).taskExecutor(taskExecutor()).build();
-	}
-
-	@Bean
-	public Job runJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-		return new JobBuilder("importCustomers", jobRepository).flow(step1(jobRepository, transactionManager)).end()
-				.build();
-	}
-
-	@Bean
-	public TaskExecutor taskExecutor() {
-		SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
-		asyncTaskExecutor.setConcurrencyLimit(10);
-		return asyncTaskExecutor;
-	}
 
 }

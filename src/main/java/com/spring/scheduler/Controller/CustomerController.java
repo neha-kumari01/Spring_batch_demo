@@ -9,20 +9,23 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/jobs")
-public class JobController {
+@RequestMapping("/importCustomers")
+public class CustomerController {
 
 	@Autowired
 	private JobLauncher jobLauncher;
+
 	@Autowired
+	@Qualifier("import")
 	private Job job;
 
-	@GetMapping("/importCustomers")
+	@GetMapping
 	public void importCsvToDBJob() {
 		JobParameters jobParameters = new JobParametersBuilder().addLong("startAt", System.currentTimeMillis())
 				.toJobParameters();
@@ -33,4 +36,5 @@ public class JobController {
 			e.printStackTrace();
 		}
 	}
+
 }
