@@ -18,8 +18,11 @@ using CompositeItemProcessor & CompositeItemWriter.
 
 COMMITS
 ----------------------
-Day 1: Spring Batch configuration is done to read from a CSV file and save it in the database. (MYSQL database)
+Day 1: Spring Batch configuration is done to read from a CSV file and save it in the database. (MYSQL database).
+
 Day 2: Spring job created using chunk step, flatFileItemReader, and RepositoryItemWriter, a database hosted on AWS. 
        Successfully ran.
-Day 3: Changes are done to implement, to populate two tables using One single ItemReader, using compositeItemWriter (not working)
+       
+Day 3: Changes are done to implement, to populate two tables using One single ItemReader, using compositeItemWriter (not working).
+
 Day 4: Implemented CompositeItemWriter and CompositeItemProcessor, code is finally working.
