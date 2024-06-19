@@ -11,29 +11,34 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.spring.scheduler.config.divideCustomers.ChinaCustomerProcessor;
+import com.spring.scheduler.config.divideCustomers.ChinaItemWriter;
+import com.spring.scheduler.config.divideCustomers.USCustomerProcessor;
+import com.spring.scheduler.config.divideCustomers.USItemWriter;
+
 @RestController
-@RequestMapping("/segregateCustomers")
 public class SegregateCustomerController {
 
 	@Autowired
 	private JobLauncher jobLauncher;
 	
 	@Autowired
-	@Qualifier("divide")
-	private Job job;
+	@Qualifier("segregateCustomers")
+	private Job divideCustomers;
 
-	@GetMapping
-	public void populateDB() {
+	@GetMapping("/segregateCustomers")
+	public String populateDB() {
 		JobParameters jobParameters = new JobParametersBuilder().addLong("startAt", System.currentTimeMillis())
 				.toJobParameters();
 		try {
-			jobLauncher.run(job, jobParameters);
+			jobLauncher.run(divideCustomers, jobParameters);
 		} catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
 				| JobParametersInvalidException e) {
 			e.printStackTrace();
 		}
+		return "Segregate Job Completed, China records processed:" + ChinaCustomerProcessor.count +", US records processed: "+USCustomerProcessor.count
++"/n China records write count: "+ ChinaItemWriter.count +", US records write count: "+USItemWriter.count;
 	}
 }

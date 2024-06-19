@@ -11,30 +11,29 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/importCustomers")
 public class CustomerController {
 
 	@Autowired
 	private JobLauncher jobLauncher;
 
 	@Autowired
-	@Qualifier("import")
-	private Job job;
+	@Qualifier("importCustomers")
+	private Job importCustomer;
 
-	@GetMapping
-	public void importCsvToDBJob() {
+	@GetMapping("/importCustomers")
+	public String importCsvToDBJob() {
 		JobParameters jobParameters = new JobParametersBuilder().addLong("startAt", System.currentTimeMillis())
 				.toJobParameters();
 		try {
-			jobLauncher.run(job, jobParameters);
+			jobLauncher.run(importCustomer, jobParameters);
 		} catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
 				| JobParametersInvalidException e) {
 			e.printStackTrace();
 		}
+		return "Import Job Running";
 	}
 
 }

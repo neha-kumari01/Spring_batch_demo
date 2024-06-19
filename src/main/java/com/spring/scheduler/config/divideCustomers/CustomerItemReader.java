@@ -1,4 +1,4 @@
-package com.spring.scheduler.config;
+package com.spring.scheduler.config.divideCustomers;
 
 import java.util.Iterator;
 
@@ -7,10 +7,12 @@ import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.spring.scheduler.entity.Customer;
 import com.spring.scheduler.repo.CustomerRepository;
 
+@Component
 public class CustomerItemReader implements ItemReader<Customer> {
 	@Autowired
 	private CustomerRepository repository;

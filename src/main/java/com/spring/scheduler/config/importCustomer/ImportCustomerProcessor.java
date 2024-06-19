@@ -1,4 +1,4 @@
-package com.spring.scheduler.config;
+package com.spring.scheduler.config.importCustomer;
 
 import org.springframework.batch.item.ItemProcessor;
 

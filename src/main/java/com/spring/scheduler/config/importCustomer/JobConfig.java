@@ -1,4 +1,4 @@
-package com.spring.scheduler.config;
+package com.spring.scheduler.config.importCustomer;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -13,6 +13,7 @@ import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -21,7 +22,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.spring.scheduler.entity.Customer;
 import com.spring.scheduler.repo.CustomerRepository;
 
-public class ImportCustomersJobConfig {
+@Configuration
+public class JobConfig {
 	
 	@Autowired
 	private CustomerRepository customerRepository;
@@ -72,7 +74,7 @@ public class ImportCustomersJobConfig {
 				.reader(reader()).processor(processor()).writer(writer()).taskExecutor(taskExecutor()).build();
 	}
 
-	@Bean("import")
+	@Bean(name="importCustomers")
 	public Job importCustomer(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		return new JobBuilder("importCustomers", jobRepository).flow(step1(jobRepository, transactionManager)).end()
 				.build();
